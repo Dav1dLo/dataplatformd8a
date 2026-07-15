@@ -1,31 +1,32 @@
 # crm_iap_lead_mining_request_crm_iap_lead_role_rel
 
 ## Source system
-The table likely originates from a custom CRM or Lead Management application, given the specific naming convention `crm_iap_lead_mining_request` and `crm_iap_lead_role`. The suffix `_rel` strongly suggests this is a junction table exported from a relational database management system (RDBMS) that manages many-to-many relationships between lead mining requests and lead roles.
+The table likely originates from an internal CRM or Lead Management system, possibly a custom-built application or a module within a larger ERP suite. The naming convention `crm_iap_lead_mining_request` suggests a specific business workflow related to lead generation or data enrichment, while the `_rel` suffix indicates this is a junction table managing a many-to-many relationship.
 
 ## Functional process 
-This table supports the lead qualification and assignment process. It maps specific lead mining requests (which represent a search or data extraction task for potential leads) to the specific roles (e.g., "Sales Development Rep", "Account Executive") associated with those requests.
+This table supports the lead management and assignment process, specifically linking lead mining requests to specific lead roles. It facilitates the mapping of business requirements (mining requests) to the functional roles responsible for executing or overseeing those requests within the CRM ecosystem.
 
 ## Description
-Each row in this table represents a single association between a lead mining request and a lead role. It acts as a bridge table in the staging layer, preserving the many-to-many relationship structure found in the source system to ensure referential integrity during downstream transformations.
+One row in this table represents a single association between a lead mining request and a specific lead role. As a staging table, it serves as a raw, landed representation of the many-to-many relationship mapping between these two entities, intended for use in downstream join operations.
 
 ## Columns
 
 | Column | Type | Nullable | Meaning | Notes |
 | :--- | :--- | :--- | :--- | :--- |
-| crm_iap_lead_mining_request_id | INTEGER | false | Foreign key to the lead mining request entity. | Links to the primary request record. |
-| crm_iap_lead_role_id | INTEGER | false | Foreign key to the lead role definition. | Identifies the specific role assigned to the request. |
+| crm_iap_lead_mining_request_id | INTEGER | false | Foreign key to the lead mining request entity | Represents the source request identifier. |
+| crm_iap_lead_role_id | INTEGER | false | Foreign key to the lead role entity | Represents the role identifier assigned to the request. |
 
 ## Keys
 
-- **Primary key (inferred):** The combination of `crm_iap_lead_mining_request_id` and `crm_iap_lead_role_id` is the composite primary key.
+- **Primary key (inferred):** Not confidently inferable; likely a composite primary key consisting of (`crm_iap_lead_mining_request_id`, `crm_iap_lead_role_id`).
 - **Foreign keys (inferred):** 
-    - `crm_iap_lead_mining_request_id` → `crm_iap_lead_mining_request.id` (guessed based on naming convention).
-    - `crm_iap_lead_role_id` → `crm_iap_lead_role.id` (guessed based on naming convention).
-- **Natural keys (inferred):** Not confidently inferable from the provided metadata.
+    - `crm_iap_lead_mining_request_id` → `crm_iap_lead_mining_request.id` (Inferred from naming convention).
+    - `crm_iap_lead_role_id` → `crm_iap_lead_role.id` (Inferred from naming convention).
+- **Natural keys (inferred):** The combination of (`crm_iap_lead_mining_request_id`, `crm_iap_lead_role_id`) acts as the natural business key for this relationship.
 
 ## Caveats for downstream consumers
 
-- This is a junction table; queries should expect to join this against two other tables to retrieve meaningful business attributes.
-- There are no timestamps or audit columns present; it is impossible to determine the creation or modification time of these relationships from this table alone.
-- The table contains no PII, but it does define the structural relationship between sensitive lead mining activities and internal roles.
+- This table is a junction table; ensure joins are performed on both columns to avoid Cartesian products.
+- No audit timestamps (e.g., `created_at`, `updated_at`) are present; assume the data reflects the state at the time of the last ingestion.
+- There is no explicit soft-delete flag; assume the presence of a row indicates an active relationship.
+- Ensure referential integrity is validated during transformation, as staging tables may contain orphaned records if the source system does not enforce strict constraints.

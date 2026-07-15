@@ -1,37 +1,37 @@
 # calendar_popover_delete_wizard
 
 ## Source system
-This table originates from an Odoo ERP system. The naming convention (e.g., `create_uid`, `write_uid`, `create_date`, `write_date`) and the use of sequence-based primary keys are characteristic of Odoo's ORM-generated database schema.
+This table originates from Odoo (OpenERP), an open-source ERP system. The naming convention (using `_uid`, `_date`, and `_seq` sequences) and the specific structure of wizard-related tables are characteristic of Odoo's ORM-generated staging tables used to manage transient UI state or temporary data processing.
 
 ## Functional process 
-This table supports the UI-driven deletion workflow within the calendar module. It acts as a transient or wizard-state table that tracks user-initiated deletion requests for specific calendar records, likely managing the state or confirmation logic before a record is permanently removed from the system.
+This table supports the "Calendar Event Deletion" process. It acts as a transient wizard state holder, capturing the intent and metadata when a user initiates the deletion of a calendar record through the Odoo web interface.
 
 ## Description
-One row in this table represents a single instance of a "delete wizard" session triggered by a user in the calendar interface. It serves as a raw landing copy of the wizard's state, capturing which record is being targeted for deletion and the audit trail of the wizard's creation and modification.
+One row in this table represents a single instance of a deletion wizard session triggered by a user. It serves as a staging entity to track the lifecycle of a deletion request, including who created the request, who modified it, and the associated record ID targeted for removal.
 
 ## Columns
 
 | Column | Type | Nullable | Meaning | Notes |
 | :--- | :--- | :--- | :--- | :--- |
-| id | INTEGER | false | Surrogate primary key | Uses `calendar_popover_delete_wizard_id_seq`. |
-| record | INTEGER | true | Target record ID | The ID of the calendar entry being processed for deletion. |
+| id | INTEGER | false | Surrogate primary key | Managed by `calendar_popover_delete_wizard_id_seq`. |
+| record | INTEGER | true | Target record identifier | The ID of the calendar event being processed for deletion. |
 | create_uid | INTEGER | true | Creator user ID | Foreign key to the user who initiated the wizard. |
 | write_uid | INTEGER | true | Last modifier user ID | Foreign key to the user who last updated the wizard state. |
-| delete | VARCHAR | true | Deletion flag or status | Likely stores a status string or confirmation flag for the deletion process. |
-| create_date | TIMESTAMP | true | Creation timestamp | Recorded by the ingestion job; timezone typically UTC. |
-| write_date | TIMESTAMP | true | Last modification timestamp | Recorded by the ingestion job; timezone typically UTC. |
+| delete | VARCHAR | true | Deletion flag or criteria | Likely stores a boolean string or specific deletion scope/reason. |
+| create_date | TIMESTAMP | true | Creation timestamp | Timestamp when the wizard session was initialized. |
+| write_date | TIMESTAMP | true | Last update timestamp | Timestamp when the wizard session was last modified. |
 
 ## Keys
 
 - **Primary key (inferred):** `id`
 - **Foreign keys (inferred):** 
-    - `create_uid` → `res_users.id` (Standard Odoo pattern for user tracking).
-    - `write_uid` → `res_users.id` (Standard Odoo pattern for user tracking).
+    - `create_uid` → `res_users.id` (Standard Odoo pattern for tracking record creation).
+    - `write_uid` → `res_users.id` (Standard Odoo pattern for tracking record modification).
 - **Natural keys (inferred):** Not confidently inferable.
 
 ## Caveats for downstream consumers
 
-- Timestamps (`create_date`, `write_date`) are assumed to be in UTC, consistent with standard Odoo database configurations.
-- This table appears to be a transient wizard state; expect high churn and potentially short-lived data.
-- No PII is explicitly identified, but `create_uid` and `write_uid` link to user identity tables.
-- The `delete` column is a `VARCHAR` and may contain non-standardized status strings; validate distinct values before filtering.
+- **Timestamps:** Timestamps are typically stored in UTC by Odoo; verify against the application server configuration.
+- **Data Volatility:** As a "wizard" table, this data is often transient and may be truncated or cleared by the application after the deletion process completes.
+- **Sensitive Data:** Contains user IDs (`create_uid`, `write_uid`) which may need to be joined against `res_users` to resolve names; ensure access controls are applied to user-identifying information.
+- **Soft Deletes:** This table tracks the *process* of deletion, not the calendar events themselves; do not treat this as a source of truth for the existence of calendar records.

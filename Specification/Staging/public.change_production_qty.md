@@ -1,36 +1,36 @@
 # change_production_qty
 
 ## Source system
-This table originates from an Odoo ERP system, as evidenced by the naming convention (`mo_id`, `create_uid`, `write_uid`, `write_date`) and the use of standard Odoo sequence-based primary keys.
+This table originates from an Odoo ERP system. The naming convention (e.g., `mo_id`, `create_uid`, `write_uid`, `write_date`) and the use of standard Odoo sequence generators for the primary key are characteristic of Odoo's internal ORM-managed tables used for tracking manufacturing order adjustments.
 
 ## Functional process 
-This table supports the Manufacturing Order (MO) lifecycle, specifically tracking adjustments made to the planned production quantities. It logs the history of quantity changes for manufacturing orders, allowing for auditability of production plan modifications.
+This table supports the manufacturing execution process, specifically tracking historical changes or adjustments made to the planned production quantities of Manufacturing Orders (MOs). It acts as an audit or change-log mechanism to ensure traceability when production targets are modified after an order has been initiated.
 
 ## Description
-Each row represents a single adjustment event where the production quantity of a manufacturing order was modified. This is a staging layer table providing a raw, append-only or update-tracked record of quantity changes linked to specific manufacturing orders.
+Each row represents a single modification event to the production quantity of a specific manufacturing order. As a staging table, it provides a raw, append-only record of these quantity changes, capturing the user responsible for the change and the timestamp of the update.
 
 ## Columns
 
 | Column | Type | Nullable | Meaning | Notes |
 | :--- | :--- | :--- | :--- | :--- |
 | id | INTEGER | false | Surrogate primary key | Uses sequence `public.change_production_qty_id_seq`. |
-| mo_id | INTEGER | false | Manufacturing Order ID | Foreign key reference to the parent manufacturing order. |
-| create_uid | INTEGER | true | Creator user ID | ID of the user who initiated the quantity change record. |
+| mo_id | INTEGER | false | Foreign key to Manufacturing Order | Links to the parent production order being modified. |
+| create_uid | INTEGER | true | Creator user ID | ID of the user who initiated the change record. |
 | write_uid | INTEGER | true | Last modifier user ID | ID of the user who last updated this record. |
-| product_qty | NUMERIC | false | Adjusted quantity | The new quantity value set for the production order. |
-| create_date | TIMESTAMP | true | Creation timestamp | Timestamp when the change record was created. |
+| product_qty | NUMERIC | false | Adjusted quantity | The new or modified quantity value for the production order. |
+| create_date | TIMESTAMP | true | Record creation timestamp | Timestamp when the change record was first created. |
 | write_date | TIMESTAMP | true | Last update timestamp | Timestamp when the record was last modified. |
 
 ## Keys
 
 - **Primary key (inferred):** `id`
 - **Foreign keys (inferred):** 
-    - `mo_id` → `mrp_production.id` (Inferred based on standard Odoo naming conventions for manufacturing orders).
+    - `mo_id` → `mrp_production.id` (Inferred based on standard Odoo naming conventions for manufacturing order links).
 - **Natural keys (inferred):** Not confidently inferable from the provided metadata.
 
 ## Caveats for downstream consumers
 
-- **Sensitive Data:** Contains user IDs (`create_uid`, `write_uid`) which may need to be joined against an employee or user directory to resolve names.
-- **Timestamps:** Assumed to be in UTC, consistent with standard Odoo database configurations.
-- **Soft Deletes:** This table does not explicitly show a `deleted_at` or `active` flag; assume all records are active unless otherwise specified by the source system's logic.
-- **Precision:** `product_qty` is `NUMERIC` without defined scale/precision; verify if downstream systems require rounding to specific decimal places (e.g., 2 or 4) based on the product unit of measure.
+- **Timestamps:** Timestamps are assumed to be in UTC, consistent with standard Odoo database configurations.
+- **Sensitivity:** Contains user IDs (`create_uid`, `write_uid`) which may link to a separate `res_users` table containing PII.
+- **Data Integrity:** This table appears to be an audit-style log; ensure queries handle potential duplicate `mo_id` entries if multiple changes were made to the same order over time.
+- **Precision:** The `product_qty` column uses `NUMERIC` without defined scale/precision; verify if downstream systems require explicit casting to avoid rounding errors.

@@ -1,31 +1,31 @@
 # crm_iap_lead_mining_request_res_country_state_rel
 
 ## Source system
-The table likely originates from an Odoo ERP or CRM system, indicated by the naming convention `res_country_state` (a standard Odoo model for geographical states) and the `crm_iap_lead_mining_request` prefix, which corresponds to Odoo's "Lead Mining" (In-App Purchase) feature.
+This table originates from an Odoo ERP system, as indicated by the naming convention `res_country_state` (a standard Odoo model for geographical states/provinces) and the `_rel` suffix, which is characteristic of Odoo's automated many-to-many relationship tables.
 
 ## Functional process 
-This table supports the lead generation and qualification process. It acts as a junction table mapping specific lead mining requests to the geographical states (e.g., US states or provinces) targeted or associated with those requests, allowing the system to filter or attribute lead generation activities by region.
+This table supports the Lead-to-Cash pipeline, specifically the "Lead Mining" feature within the CRM module. It manages the many-to-many relationship between lead generation requests and the specific geographical states or provinces targeted for those requests.
 
 ## Description
-This table represents a many-to-many relationship between lead mining requests and geographical states. Each row links a single lead mining request to a specific state, defining the regional scope or criteria for that request. It serves as a raw landing copy of the association table from the source CRM.
+Each row represents a single association between a lead mining request and a specific geographical state. This is a raw landed junction table used to resolve the many-to-many relationship between CRM lead mining requests and country states.
 
 ## Columns
 
 | Column | Type | Nullable | Meaning | Notes |
 | :--- | :--- | :--- | :--- | :--- |
-| crm_iap_lead_mining_request_id | INTEGER | false | Foreign key to the lead mining request | Links to the parent request record. |
-| res_country_state_id | INTEGER | false | Foreign key to the country state definition | Identifies the specific state/province involved. |
+| crm_iap_lead_mining_request_id | INTEGER | false | Foreign key to the lead mining request | Links to the primary request entity. |
+| res_country_state_id | INTEGER | false | Foreign key to the country state | Identifies the specific state/province included in the request. |
 
 ## Keys
 
-- **Primary key (inferred):** The combination of `crm_iap_lead_mining_request_id` and `res_country_state_id` forms a composite primary key.
+- **Primary key (inferred):** The combination of `crm_iap_lead_mining_request_id` and `res_country_state_id` forms the composite primary key.
 - **Foreign keys (inferred):** 
-    - `crm_iap_lead_mining_request_id` → `crm_iap_lead_mining_request.id`: This column references the primary request entity.
-    - `res_country_state_id` → `res_country_state.id`: This column references the standard geographical state lookup table.
+    - `crm_iap_lead_mining_request_id` → `crm_iap_lead_mining_request.id`: This column references the parent lead mining request record.
+    - `res_country_state_id` → `res_country_state.id`: This column references the master list of geographical states.
 - **Natural keys (inferred):** Not confidently inferable.
 
 ## Caveats for downstream consumers
 
-- This is a junction table; queries should expect to perform `JOIN` operations against the parent `crm_iap_lead_mining_request` and `res_country_state` tables to retrieve meaningful business attributes.
-- There are no timestamps or soft-delete flags present; this table represents the current state of the relationship as captured during the last ingestion.
-- Ensure that joins handle the composite nature of the relationship to avoid fan-out issues.
+- This table is a pure junction table; it contains no descriptive attributes, only identifiers.
+- There are no timestamps or soft-delete flags present; assume this table reflects the current state of associations as captured during the last ingestion.
+- Ensure that joins to the target tables handle potential orphans if the source system's referential integrity is not strictly enforced during the extraction process.

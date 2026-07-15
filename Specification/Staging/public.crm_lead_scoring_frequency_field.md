@@ -1,37 +1,37 @@
 # crm_lead_scoring_frequency_field
 
 ## Source system
-This table originates from an Odoo ERP or CRM system. The naming convention (e.g., `create_uid`, `write_uid`, `create_date`, `write_date`) and the use of sequence-based primary keys are characteristic of the Odoo ORM framework.
+This table originates from an Odoo ERP or CRM system. The naming convention (e.g., `create_uid`, `write_uid`, `create_date`, `write_date`) and the use of sequence-based primary keys are characteristic of the Odoo ORM framework's standard audit and tracking columns.
 
 ## Functional process 
-This table supports the lead scoring configuration process, specifically managing the frequency settings for fields used in lead scoring models. It tracks which fields are monitored for frequency-based scoring updates and maintains the audit trail for those configuration records.
+This table supports the lead scoring configuration process, specifically managing the frequency settings for fields used in lead scoring models. It acts as a join or configuration table that links specific fields to scoring frequency parameters, ensuring that lead scores are recalculated or updated based on defined business cadences.
 
 ## Description
-One row in this table represents a specific field configuration entry within a lead scoring frequency rule. It serves as a raw landed copy of the Odoo configuration table, capturing the metadata and audit history for field-level scoring parameters.
+One row in this table represents a specific configuration entry linking a field to a scoring frequency rule. It serves as a raw landed copy of the Odoo configuration entity, capturing the audit trail and identity of the record within the staging layer.
 
 ## Columns
 
 | Column | Type | Nullable | Meaning | Notes |
 | :--- | :--- | :--- | :--- | :--- |
-| id | INTEGER | false | Surrogate primary key | Managed by `crm_lead_scoring_frequency_field_id_seq`. |
-| field_id | INTEGER | false | Reference to the field being scored | Likely links to an `ir_model_fields` table. |
-| create_uid | INTEGER | true | User ID who created the record | Links to the system's user directory. |
-| write_uid | INTEGER | true | User ID who last updated the record | Links to the system's user directory. |
-| create_date | TIMESTAMP | true | Creation timestamp | Assumed UTC. |
-| write_date | TIMESTAMP | true | Last update timestamp | Assumed UTC. |
+| id | INTEGER | false | Surrogate primary key | Uses sequence `crm_lead_scoring_frequency_field_id_seq`. |
+| field_id | INTEGER | false | Foreign key to the field definition | Identifies the specific field being configured for scoring. |
+| create_uid | INTEGER | true | User ID who created the record | References the system user who initiated this configuration. |
+| write_uid | INTEGER | true | User ID who last updated the record | References the system user who last modified this configuration. |
+| create_date | TIMESTAMP | true | Record creation timestamp | Inferred UTC; audit timestamp from the source system. |
+| write_date | TIMESTAMP | true | Record last update timestamp | Inferred UTC; audit timestamp from the source system. |
 
 ## Keys
 
 - **Primary key (inferred):** `id`
 - **Foreign keys (inferred):** 
-    - `create_uid` → `res_users.id` (Standard Odoo pattern for audit tracking).
-    - `write_uid` → `res_users.id` (Standard Odoo pattern for audit tracking).
-    - `field_id` → `ir_model_fields.id` (Standard Odoo pattern for referencing system fields).
+    - `field_id → ir_model_fields.id`: This column likely references the standard Odoo model field registry.
+    - `create_uid → res_users.id`: Standard Odoo pattern for tracking record creators.
+    - `write_uid → res_users.id`: Standard Odoo pattern for tracking record modifiers.
 - **Natural keys (inferred):** Not confidently inferable from the provided metadata.
 
 ## Caveats for downstream consumers
 
-- **Sensitive Data:** Contains user IDs (`create_uid`, `write_uid`) which may need to be joined against a user directory to resolve names; no direct PII is present.
-- **Timestamps:** Timestamps are assumed to be in UTC, consistent with standard Odoo database configurations.
-- **Soft Deletes:** This table does not appear to have a soft-delete flag (e.g., `active` column); assume all records are current unless otherwise specified by the source system logic.
-- **Audit Fields:** `create_date` and `write_date` should be used for incremental loading strategies.
+- **Timestamps:** Assumed to be in UTC, consistent with standard Odoo database configurations.
+- **Audit Columns:** `create_uid` and `write_uid` are internal system IDs; they will not resolve to meaningful names without joining to the `res_users` table.
+- **Soft Deletes:** This table does not appear to have a `deleted` or `active` flag; assume all records are current unless otherwise specified by the source system's business logic.
+- **Data Integrity:** As a staging table, ensure that `field_id` is validated against the master field registry before performing joins in downstream models.

@@ -1,31 +1,31 @@
 # crm_iap_lead_mining_request_res_country_rel
 
 ## Source system
-This table likely originates from an Odoo ERP or CRM system. The naming convention `_res_country_rel` is a standard pattern used by Odoo to represent many-to-many relationship tables (often called "relation tables") between a primary business object (in this case, `crm_iap_lead_mining_request`) and a reference entity (`res_country`).
+This table originates from an Odoo ERP or CRM system. The naming convention `_rel` combined with the prefix `crm_iap_lead_mining_request` is characteristic of Odoo's many-to-many relationship tables, which are automatically generated to link business objects (in this case, lead mining requests and countries).
 
 ## Functional process 
-This table supports the lead generation and enrichment process, specifically tracking the geographic scope or target countries associated with a lead mining request. It allows the system to associate multiple countries with a single IAP (In-App Purchase) lead mining request, facilitating targeted lead acquisition.
+This table supports the lead generation and prospecting process. It acts as a junction table that maps specific lead mining requests to the target countries or regions defined for those requests, allowing the system to filter or scope lead mining activities by geographic location.
 
 ## Description
-Each row represents a single association between a specific lead mining request and a target country. It acts as a join table to resolve a many-to-many relationship, ensuring that a single request can be scoped to one or more countries. This is a raw landing of the relationship table from the source system.
+One row in this table represents a single association between a lead mining request and a country. It is a raw landed copy of a many-to-many join table, serving as the bridge to resolve the relationship between mining requests and their associated target countries.
 
 ## Columns
 
 | Column | Type | Nullable | Meaning | Notes |
 | :--- | :--- | :--- | :--- | :--- |
-| crm_iap_lead_mining_request_id | INTEGER | false | Foreign key to the lead mining request | Links to the parent request entity. |
+| crm_iap_lead_mining_request_id | INTEGER | false | Foreign key to the lead mining request | Links to the primary request entity. |
 | res_country_id | INTEGER | false | Foreign key to the country definition | Links to the master country list. |
 
 ## Keys
 
 - **Primary key (inferred):** The composite of (`crm_iap_lead_mining_request_id`, `res_country_id`).
 - **Foreign keys (inferred):** 
-    - `crm_iap_lead_mining_request_id` → `crm_iap_lead_mining_request.id`: This column references the primary request record.
-    - `res_country_id` → `res_country.id`: This column references the standard Odoo country definition table.
-- **Natural keys (inferred):** Not confidently inferable from the provided metadata.
+    - `crm_iap_lead_mining_request_id` → `crm_iap_lead_mining_request.id`: This column identifies the parent request record.
+    - `res_country_id` → `res_country.id`: This column identifies the specific country associated with the request.
+- **Natural keys (inferred):** Not confidently inferable.
 
 ## Caveats for downstream consumers
 
-- This table is a link table; it contains no descriptive attributes, only identifiers.
-- There are no timestamps or audit columns present; incremental loading logic should rely on the upstream source system's change tracking if available.
-- Ensure inner joins are used when filtering by country, as this table only contains the mapping and not the country names themselves.
+- This is a junction table; it contains no descriptive attributes other than the two foreign keys.
+- There are no timestamps or audit columns present in this table; incremental loading logic should rely on upstream source system change tracking or full-table replacement.
+- Ensure that joins to this table are handled as composite keys to avoid fan-out issues.

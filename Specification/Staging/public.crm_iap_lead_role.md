@@ -1,39 +1,39 @@
 # crm_iap_lead_role
 
 ## Source system
-This table originates from an Odoo ERP instance, indicated by the naming convention `crm_iap_lead_role`, the use of `create_uid`/`write_uid` audit columns, and the `JSONB` data type for multi-language field storage, which are characteristic of the Odoo ORM.
+This table originates from an Odoo ERP system. The naming convention `crm_iap_lead_role`, the presence of `create_uid`/`write_uid` audit columns, and the use of `JSONB` for localized fields (common in Odoo's multi-language support) are characteristic of the Odoo CRM module's In-App Purchase (IAP) lead enrichment features.
 
 ## Functional process 
-This table supports the Lead-to-Cash pipeline by defining the roles or categories assigned to leads generated via In-App Purchasing (IAP) services. It manages the classification metadata used to segment incoming leads based on their specific business role or profile.
+This table supports the lead management and enrichment process within the CRM. It defines the roles or categories assigned to leads identified through IAP services, allowing the system to classify incoming leads based on their organizational or professional profile.
 
 ## Description
-One row in this table represents a single lead role definition used within the CRM module. It serves as a raw landed copy of the configuration entity, capturing the identity, display name, and audit trail for each role.
+One row in this table represents a specific lead role definition used to categorize CRM leads. This is a raw landing table in the Staging layer, containing the direct database representation of the role configuration, including localized names and audit metadata.
 
 ## Columns
 
 | Column | Type | Nullable | Meaning | Notes |
 | :--- | :--- | :--- | :--- | :--- |
-| id | INTEGER | false | Surrogate primary key | Sequence-generated; managed by Odoo ORM. |
-| color | INTEGER | true | UI color index | Used for visual categorization in the CRM dashboard. |
-| create_uid | INTEGER | true | Creator user ID | Foreign key to the system user who created the record. |
-| write_uid | INTEGER | true | Last modifier user ID | Foreign key to the system user who last updated the record. |
-| reveal_id | VARCHAR | false | External IAP identifier | Unique identifier provided by the IAP service provider. |
-| name | JSONB | false | Role name | Multilingual string storage; typically contains keys for language codes. |
-| create_date | TIMESTAMP | true | Creation timestamp | Recorded in UTC by the application server. |
-| write_date | TIMESTAMP | true | Last update timestamp | Recorded in UTC by the application server. |
+| id | INTEGER | false | Surrogate primary key | Uses sequence `crm_iap_lead_role_id_seq`. |
+| color | INTEGER | true | UI color index | Used for visual categorization in the CRM interface. |
+| create_uid | INTEGER | true | Creator user ID | Foreign key to the system user who created this record. |
+| write_uid | INTEGER | true | Last modifier user ID | Foreign key to the system user who last updated this record. |
+| reveal_id | VARCHAR | false | External IAP identifier | The unique identifier for the role provided by the IAP service. |
+| name | JSONB | false | Localized role name | Stores the name in multiple languages; access via `name->>'en_US'` etc. |
+| create_date | TIMESTAMP | true | Record creation timestamp | Assumed UTC. |
+| write_date | TIMESTAMP | true | Last update timestamp | Assumed UTC. |
 
 ## Keys
 
 - **Primary key (inferred):** `id`
 - **Foreign keys (inferred):** 
-    - `create_uid` → `res_users.id` (guess: standard Odoo audit pattern for record creation).
-    - `write_uid` → `res_users.id` (guess: standard Odoo audit pattern for record modification).
+    - `create_uid` → `res_users.id` (Guess: standard Odoo audit pattern).
+    - `write_uid` → `res_users.id` (Guess: standard Odoo audit pattern).
 - **Natural keys (inferred):** 
-    - `reveal_id` (The external identifier provided by the IAP service is expected to be unique per role).
+    - `reveal_id`: This appears to be the unique business key provided by the external IAP service.
 
 ## Caveats for downstream consumers
 
-- **PII/Sensitive Data:** None identified; this table contains configuration and metadata rather than customer PII.
-- **Timestamps:** Assumed to be in UTC, consistent with standard Odoo database configurations.
-- **JSONB Handling:** The `name` column is stored as `JSONB`. Downstream consumers must use PostgreSQL JSON operators (e.g., `name->>'en_US'`) to extract human-readable text.
-- **Soft Deletes:** This table does not appear to implement a soft-delete flag (`active` column is missing), suggesting that records are either hard-deleted or always active.
+- **PII/Sensitivity:** Contains no direct PII, but `name` (JSONB) may contain internal business terminology.
+- **Timestamps:** Timestamps are assumed to be in UTC, consistent with standard Odoo database configurations.
+- **Data Structure:** The `name` column is a `JSONB` object; downstream queries must use PostgreSQL JSON operators (e.g., `->>`) to extract specific language values.
+- **Soft Deletes:** This table does not appear to implement a soft-delete flag; assume records are hard-deleted if missing from source.

@@ -1,42 +1,42 @@
 # calendar_provider_config
 
 ## Source system
-This table originates from an Odoo ERP instance, as evidenced by the naming convention of audit columns (`create_uid`, `write_uid`, `create_date`, `write_date`) and the use of PostgreSQL sequence-based primary keys (`nextval` on `id`).
+The table likely originates from an Odoo ERP or a similar modular business application. The presence of `create_uid`, `write_uid`, `create_date`, and `write_date` columns, combined with the use of a sequence-based default for the `id` column, is highly characteristic of the Odoo framework's ORM metadata patterns.
 
 ## Functional process 
-This table supports the integration and synchronization process between the ERP and external calendar services. It stores the authentication credentials and synchronization status flags required for the system to interface with Google Calendar and Microsoft Outlook APIs.
+This table supports the configuration and integration management of external calendar services (such as Google Calendar or Microsoft Outlook) within the platform. It stores the necessary API credentials and synchronization status flags required to facilitate bidirectional calendar event syncing between the internal system and external providers.
 
 ## Description
-One row in this table represents a specific configuration profile for an external calendar provider linked to the ERP. It serves as a raw landing copy of the configuration settings, including OAuth client identifiers and secrets, used to manage the state of calendar synchronization.
+One row in this table represents a specific configuration profile for an external calendar integration. It acts as a raw landed copy of the system's integration settings, storing authentication tokens and operational state flags used by the synchronization engine.
 
 ## Columns
 
 | Column | Type | Nullable | Meaning | Notes |
 | :--- | :--- | :--- | :--- | :--- |
-| id | INTEGER | false | Surrogate primary key | Sequence-generated. |
-| create_uid | INTEGER | true | User ID who created the record | References the internal user table. |
-| write_uid | INTEGER | true | User ID who last updated the record | References the internal user table. |
-| external_calendar_provider | VARCHAR | true | Name of the calendar provider | e.g., 'google', 'outlook'. |
-| cal_client_id | VARCHAR | true | OAuth client ID for general calendar | Used for API authentication. |
-| cal_client_secret | VARCHAR | true | OAuth client secret for general calendar | Sensitive: contains credentials. |
-| microsoft_outlook_client_identifier | VARCHAR | true | Microsoft-specific OAuth client ID | Used for Outlook API authentication. |
-| microsoft_outlook_client_secret | VARCHAR | true | Microsoft-specific OAuth client secret | Sensitive: contains credentials. |
-| cal_sync_paused | BOOLEAN | true | Sync status for general calendar | True if synchronization is disabled. |
-| microsoft_outlook_sync_paused | BOOLEAN | true | Sync status for Outlook | True if synchronization is disabled. |
-| create_date | TIMESTAMP | true | Record creation timestamp | UTC assumed. |
-| write_date | TIMESTAMP | true | Last update timestamp | UTC assumed. |
+| id | INTEGER | false | Surrogate primary key | Sequence-generated identifier. |
+| create_uid | INTEGER | true | Creator user ID | Reference to the user who created this config. |
+| write_uid | INTEGER | true | Last modifier user ID | Reference to the user who last updated this config. |
+| external_calendar_provider | VARCHAR | true | Provider name | Identifier for the calendar service (e.g., 'google', 'outlook'). |
+| cal_client_id | VARCHAR | true | OAuth Client ID | Client identifier for general calendar API. |
+| cal_client_secret | VARCHAR | true | OAuth Client Secret | Secret key for general calendar API. |
+| microsoft_outlook_client_identifier | VARCHAR | true | MS Outlook Client ID | Specific client ID for Microsoft Outlook integration. |
+| microsoft_outlook_client_secret | VARCHAR | true | MS Outlook Client Secret | Specific client secret for Microsoft Outlook integration. |
+| cal_sync_paused | BOOLEAN | true | Sync status flag | Indicates if general calendar sync is paused. |
+| microsoft_outlook_sync_paused | BOOLEAN | true | Outlook sync status flag | Indicates if Outlook-specific sync is paused. |
+| create_date | TIMESTAMP | true | Creation timestamp | Timestamp when the record was created. |
+| write_date | TIMESTAMP | true | Last update timestamp | Timestamp when the record was last modified. |
 
 ## Keys
 
 - **Primary key (inferred):** `id`
 - **Foreign keys (inferred):** 
-    - `create_uid` → `res_users.id` (Guess: standard Odoo pattern for audit fields).
-    - `write_uid` → `res_users.id` (Guess: standard Odoo pattern for audit fields).
-- **Natural keys (inferred):** Not confidently inferable.
+    - `create_uid` → `res_users.id` (Guess: standard Odoo pattern for user references).
+    - `write_uid` → `res_users.id` (Guess: standard Odoo pattern for user references).
+- **Natural keys (inferred):** Not confidently inferable from the provided metadata.
 
 ## Caveats for downstream consumers
 
-- **Sensitive Data:** `cal_client_secret` and `microsoft_outlook_client_secret` contain plain-text credentials and must be masked or restricted in downstream reporting.
-- **Timestamps:** Timestamps are assumed to be in UTC, consistent with standard Odoo PostgreSQL deployments.
-- **Soft Deletes:** This table does not appear to have a `deleted` or `active` flag; assume all records are current unless otherwise specified by the application logic.
-- **Data Quality:** As a staging table, this contains raw configuration values; verify if `VARCHAR` fields have length constraints in the source DDL if performing bulk loads.
+- **Sensitive Data:** This table contains `cal_client_secret` and `microsoft_outlook_client_secret`. These columns contain credentials and must be masked or restricted in downstream reporting environments.
+- **Timezone:** Timestamps (`create_date`, `write_date`) are typically stored in UTC in Odoo-based systems, but verify against the application server configuration.
+- **Soft Deletes:** This table does not appear to implement a soft-delete flag (e.g., `active` column), which is unusual for Odoo; assume rows are hard-deleted if they disappear.
+- **Data Precision:** `VARCHAR` types do not specify length; assume standard variable length but verify against source DDL if performing bulk loads.

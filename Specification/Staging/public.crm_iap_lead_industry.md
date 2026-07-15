@@ -1,40 +1,39 @@
 # crm_iap_lead_industry
 
 ## Source system
-This table originates from an Odoo ERP system, as evidenced by the naming convention of audit columns (`create_uid`, `write_uid`, `create_date`, `write_date`) and the use of `JSONB` for localized fields like `name`, which is characteristic of Odoo's multi-language support.
+This table originates from an Odoo ERP instance, as evidenced by the naming convention (`crm_iap_lead_industry`), the use of `create_uid`/`write_uid` audit columns, and the `JSONB` type for the `name` field, which is characteristic of Odoo's multi-language field storage.
 
 ## Functional process 
-This table supports the Lead-to-Cash pipeline by categorizing leads based on industry segments. It is used to map lead data to specific industry classifications, likely powering segmentation features within the CRM module.
+This table supports the Lead-to-Cash pipeline by categorizing leads based on industry sectors. It is used by the In-App Purchasing (IAP) lead enrichment service to map discovered lead data to predefined industry classifications within the CRM module.
 
 ## Description
-One row in this table represents a single industry classification record used for tagging CRM leads. It serves as a raw landed reference table in the staging layer, capturing the metadata and configuration for industry-based lead filtering.
+One row represents a single industry classification category used for lead enrichment. This is a raw landed staging table containing the configuration data for industry labels, including their display sequence and associated metadata.
 
 ## Columns
 
 | Column | Type | Nullable | Meaning | Notes |
 | :--- | :--- | :--- | :--- | :--- |
 | id | INTEGER | false | Surrogate primary key | Uses sequence `crm_iap_lead_industry_id_seq`. |
-| color | INTEGER | true | UI color index | Used for visual representation in the CRM interface. |
-| sequence | INTEGER | true | Sort order | Determines the display order in dropdowns or lists. |
-| create_uid | INTEGER | true | Creator user ID | Foreign key to the system user who created the record. |
-| write_uid | INTEGER | true | Last modifier user ID | Foreign key to the system user who last updated the record. |
-| reveal_ids | VARCHAR | false | Reveal service mapping IDs | Likely a comma-separated list of IDs from an external IAP (In-App Purchase) service. |
-| name | JSONB | false | Industry name | Localized name stored as a JSON object; requires parsing for specific locales. |
-| create_date | TIMESTAMP | true | Creation timestamp | Recorded in UTC by the application server. |
-| write_date | TIMESTAMP | true | Last update timestamp | Recorded in UTC by the application server. |
+| color | INTEGER | true | UI color index | Used for visual categorization in the CRM interface. |
+| sequence | INTEGER | true | Display order | Determines the sort order in dropdowns or lists. |
+| create_uid | INTEGER | true | Creator user ID | Reference to the user who created this record. |
+| write_uid | INTEGER | true | Last modifier user ID | Reference to the user who last updated this record. |
+| reveal_ids | VARCHAR | false | IAP mapping identifiers | Likely a comma-separated list of IDs used by the IAP service. |
+| name | JSONB | false | Industry name | Multi-language field; stores translations as JSON objects. |
+| create_date | TIMESTAMP | true | Creation timestamp | Recorded by the ingestion job; timezone unknown. |
+| write_date | TIMESTAMP | true | Last update timestamp | Recorded by the ingestion job; timezone unknown. |
 
 ## Keys
 
 - **Primary key (inferred):** `id`
 - **Foreign keys (inferred):** 
-    - `create_uid` → `res_users.id` (Guess: standard Odoo pattern for record ownership).
-    - `write_uid` → `res_users.id` (Guess: standard Odoo pattern for record modification).
+    - `create_uid` → `res_users.id` (Guess: standard Odoo pattern for audit columns).
+    - `write_uid` → `res_users.id` (Guess: standard Odoo pattern for audit columns).
 - **Natural keys (inferred):** Not confidently inferable from the provided metadata.
 
 ## Caveats for downstream consumers
 
-- **PII/Sensitive Data:** None identified; this table contains configuration and metadata.
-- **Timestamps:** Assumed to be in UTC, consistent with standard Odoo database configurations.
-- **Soft Deletes:** This table does not appear to implement a soft-delete flag (e.g., `active` column), so assume all rows are current unless otherwise specified by the source system.
-- **JSONB Parsing:** The `name` column requires extraction logic (e.g., `name->>'en_US'`) to be used in reporting or downstream dimensions.
-- **Data Pattern:** As a staging table, this data is subject to change and should be validated for schema drift before being promoted to the silver/gold layers.
+- The `name` column is `JSONB`; queries will require extraction (e.g., `name->>'en_US'`) to access specific language values.
+- Timestamps (`create_date`, `write_date`) are provided as-is from the source; verify if the source system stores these in UTC or local server time.
+- The `reveal_ids` column contains a string of IDs; this will require parsing (e.g., `string_to_array`) if used for joining against other tables.
+- This table is a configuration/lookup table; it is unlikely to contain PII, but `reveal_ids` should be reviewed for potential sensitive mapping data.

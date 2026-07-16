@@ -1,31 +1,31 @@
 # mrp_routing_workcenter_dependencies_rel
 
 ## Source system
-This table likely originates from an ERP or Manufacturing Execution System (MES) such as Odoo or a similar modular manufacturing suite. The naming convention `mrp_routing_workcenter_dependencies_rel` is characteristic of an association table used to manage many-to-many relationships between manufacturing routing operations and their prerequisite dependencies.
+This table likely originates from an Odoo ERP or a similar manufacturing execution system (MES). The naming convention `mrp_routing_workcenter_dependencies_rel` is characteristic of Odoo's internal table naming for many-to-many relationship tables (often suffixed with `_rel`), specifically managing dependencies between manufacturing routing operations.
 
 ## Functional process 
-This table supports the production scheduling and manufacturing routing process. It defines the sequence constraints in a bill of operations, ensuring that specific manufacturing steps (operations) cannot commence until their prerequisite operations (blocked_by) have been completed.
+This table supports the manufacturing production planning process, specifically the sequencing of operations within a routing. It defines the dependency graph where one manufacturing operation must be completed before another can begin, ensuring correct workflow execution on the shop floor.
 
 ## Description
-Each row represents a single dependency relationship between two manufacturing operations within a routing sequence. It is a raw landing copy of a join table, serving to map which operation must be finished before another can begin.
+Each row represents a single dependency relationship between two manufacturing operations, where one operation is blocked by the completion of another. This is a raw landing table representing a many-to-many join entity, used to reconstruct the sequence of workcenter tasks in the staging layer.
 
 ## Columns
 
 | Column | Type | Nullable | Meaning | Notes |
 | :--- | :--- | :--- | :--- | :--- |
-| operation_id | INTEGER | false | The ID of the dependent manufacturing operation. | Foreign key to the operations table. |
-| blocked_by_id | INTEGER | false | The ID of the prerequisite manufacturing operation. | Foreign key to the operations table. |
+| operation_id | INTEGER | false | The ID of the operation that is being blocked. | References the primary key of the operations table. |
+| blocked_by_id | INTEGER | false | The ID of the operation that must be completed first. | References the primary key of the operations table. |
 
 ## Keys
 
-- **Primary key (inferred):** The composite of (`operation_id`, `blocked_by_id`).
+- **Primary key (inferred):** The composite of `(operation_id, blocked_by_id)`.
 - **Foreign keys (inferred):** 
-    - `operation_id` → `mrp_routing_workcenter.id`: This column identifies the operation being constrained.
-    - `blocked_by_id` → `mrp_routing_workcenter.id`: This column identifies the operation that acts as the prerequisite.
+    - `operation_id → mrp_routing_operation.id` (Guess: Represents the dependent task).
+    - `blocked_by_id → mrp_routing_operation.id` (Guess: Represents the prerequisite task).
 - **Natural keys (inferred):** Not confidently inferable from the provided metadata.
 
 ## Caveats for downstream consumers
 
-- This table is a pure join table; it contains no descriptive attributes, only identifiers.
-- Ensure that queries account for potential circular dependencies (e.g., A depends on B, B depends on A) which may exist in the source data and could cause infinite loops in recursive CTEs.
-- There are no timestamps or soft-delete flags present; this table represents the current state of dependencies as captured during the last ingestion.
+- This table is a junction table; it contains no descriptive attributes, only relationship identifiers.
+- There is no explicit `is_active` or `deleted` flag; assume this represents the current state of dependencies as captured during the last extraction.
+- Ensure that downstream joins handle the potential for circular dependencies, as this table structure does not inherently prevent them.

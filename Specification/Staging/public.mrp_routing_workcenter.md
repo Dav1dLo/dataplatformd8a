@@ -1,34 +1,34 @@
 # mrp_routing_workcenter
 
 ## Source system
-This table originates from Odoo ERP, as evidenced by the naming convention (`mrp_routing_workcenter`), the use of `create_uid`/`write_uid` audit columns, and the `nextval` sequence pattern typical of Odoo's PostgreSQL backend.
+This table originates from Odoo ERP, indicated by the naming convention `mrp_routing_workcenter` (Manufacturing Resource Planning), the use of `create_uid`/`write_uid` audit columns, and the sequence-based primary key pattern typical of the Odoo framework.
 
 ## Functional process 
-This table supports the Manufacturing (MRP) module, specifically the definition of routing operations. It maps specific work centers to Bill of Materials (BOM) steps, defining the sequence of operations and time requirements for manufacturing processes.
+This table supports the manufacturing routing process, specifically defining the sequence of operations or work centers required to produce a Bill of Materials (BOM). It links specific work centers to a BOM, determining the order of production steps and the associated time metrics for manual operations.
 
 ## Description
-One row represents a single work center assignment within a manufacturing routing step for a specific Bill of Materials. It acts as a raw landed copy of the Odoo `mrp.routing.workcenter` model, capturing the configuration of how a product is processed at a specific station.
+One row represents a single step or work center assignment within a manufacturing routing for a specific Bill of Materials. This is a raw landed staging table containing the configuration and metadata for production routing steps, including references to external documentation like Google Slides and manual cycle time estimates.
 
 ## Columns
 
 | Column | Type | Nullable | Meaning | Notes |
 | :--- | :--- | :--- | :--- | :--- |
 | id | INTEGER | false | Surrogate primary key | Managed by `mrp_routing_workcenter_id_seq`. |
-| workcenter_id | INTEGER | false | Foreign key to work center | Links to the specific machine or station. |
-| sequence | INTEGER | true | Display order | Determines the order of operations in the routing. |
-| bom_id | INTEGER | false | Foreign key to BOM | Links to the parent Bill of Materials. |
-| time_mode_batch | INTEGER | true | Batch size for time calculation | Used when calculating cycle times for multiple units. |
-| create_uid | INTEGER | true | Creator user ID | Reference to the user who created the record. |
-| write_uid | INTEGER | true | Last modifier user ID | Reference to the user who last updated the record. |
-| name | VARCHAR | false | Operation name | Descriptive label for the routing step. |
+| workcenter_id | INTEGER | false | Foreign key to work center | References the resource performing the work. |
+| sequence | INTEGER | true | Operation order | Determines the sequence of steps in the routing. |
+| bom_id | INTEGER | false | Foreign key to BOM | Links this step to a specific Bill of Materials. |
+| time_mode_batch | INTEGER | true | Batch size for time calculation | Used to calculate cycle time per unit. |
+| create_uid | INTEGER | true | Creator user ID | References the system user who created the record. |
+| write_uid | INTEGER | true | Last updater user ID | References the system user who last modified the record. |
+| name | VARCHAR | false | Operation name | Descriptive name of the routing step. |
 | worksheet_type | VARCHAR | true | Type of instruction | Defines the format of the work instructions. |
-| worksheet_google_slide | VARCHAR | true | URL/ID for instructions | Link to external Google Slides documentation. |
-| time_mode | VARCHAR | true | Time calculation mode | Strategy for calculating cycle time (e.g., 'manual', 'auto'). |
-| note | TEXT | true | Operational notes | Additional instructions for the operator. |
+| worksheet_google_slide | VARCHAR | true | Google Slide URL | Link to external work instruction documentation. |
+| time_mode | VARCHAR | true | Time calculation method | Strategy for calculating operation duration. |
+| note | TEXT | true | Operational notes | Free-text instructions or comments for the operator. |
 | active | BOOLEAN | true | Soft-delete flag | Indicates if the routing step is currently enabled. |
-| create_date | TIMESTAMP | true | Creation timestamp | UTC timestamp of record creation. |
-| write_date | TIMESTAMP | true | Last update timestamp | UTC timestamp of last modification. |
-| time_cycle_manual | DOUBLE PRECISION | true | Manual cycle time | Time in minutes/seconds for the operation. |
+| create_date | TIMESTAMP | true | Creation timestamp | Recorded in server local time. |
+| write_date | TIMESTAMP | true | Last update timestamp | Recorded in server local time. |
+| time_cycle_manual | DOUBLE PRECISION | true | Manual cycle time | Estimated duration for the operation in minutes. |
 
 ## Keys
 
@@ -38,11 +38,11 @@ One row represents a single work center assignment within a manufacturing routin
     - `bom_id` → `mrp_bom.id` (Inferred from Odoo naming convention).
     - `create_uid` → `res_users.id` (Standard Odoo audit pattern).
     - `write_uid` → `res_users.id` (Standard Odoo audit pattern).
-- **Natural keys (inferred):** Not confidently inferable from the provided metadata.
+- **Natural keys (inferred):** Not confidently inferable.
 
 ## Caveats for downstream consumers
 
-- **Soft Deletes:** The `active` column is a soft-delete flag; ensure queries filter by `active = TRUE` unless historical analysis is required.
-- **Timestamps:** Timestamps are stored in UTC as per standard Odoo configuration.
-- **PII:** No direct PII is present, though `create_uid` and `write_uid` link to user identities in the `res_users` table.
-- **Data Precision:** `time_cycle_manual` units should be verified against Odoo system settings (typically minutes).
+- **Soft Deletes:** The `active` column acts as a soft-delete flag; ensure queries filter by `active = TRUE` unless historical analysis is required.
+- **Timestamps:** `create_date` and `write_date` are stored in the application server's local time; verify the server timezone configuration to normalize to UTC.
+- **Data Precision:** `VARCHAR` columns do not have defined lengths in the source metadata; downstream systems should handle variable-length strings appropriately.
+- **PII/Sensitive Data:** The `note` field may contain unstructured text; audit for potential sensitive information before exposing to end-user reporting layers.

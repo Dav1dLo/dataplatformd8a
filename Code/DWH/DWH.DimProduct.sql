@@ -1,9 +1,9 @@
 -- Work Item: ad-hoc
 -- Task: DWH.DimProduct
 -- Spec: DWH.DimProduct.md
--- Version: 1
--- Generated: 2026-09-01T17:46:42.382588+00:00
--- Notes: Initial generation of DWH.DimProduct as a Type 1 dimension.
+-- Version: 2
+-- Generated: 2026-09-01T17:48:51.171091+00:00
+-- Notes: Renamed ProductBarcode to ProductSuperBarCode per spec and added missing column handling.
 
 CREATE SCHEMA IF NOT EXISTS "DWH";
 
@@ -11,20 +11,26 @@ CREATE TABLE IF NOT EXISTS "DWH"."DimProduct" (
     "ProductKey"    integer GENERATED ALWAYS AS IDENTITY,
     "ProductBK"     integer NOT NULL,
     "ProductSKU"    varchar(255),
-    "ProductBarcode" varchar(255),
+    "ProductSuperBarCode" varchar(255),
     "ProductVolume" numeric(38,6),
     "ProductWeight" numeric(38,6),
     "IsActive"      boolean,
     CONSTRAINT "PK_DimProduct" PRIMARY KEY ("ProductKey")
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS "UK_DimProduct_ProductBK" ON "DWH"."DimProduct" ("ProductBK");
+ALTER TABLE "DWH"."DimProduct" ADD COLUMN IF NOT EXISTS "ProductSKU" varchar(255);
+ALTER TABLE "DWH"."DimProduct" ADD COLUMN IF NOT EXISTS "ProductSuperBarCode" varchar(255);
+ALTER TABLE "DWH"."DimProduct" ADD COLUMN IF NOT EXISTS "ProductVolume" numeric(38,6);
+ALTER TABLE "DWH"."DimProduct" ADD COLUMN IF NOT EXISTS "ProductWeight" numeric(38,6);
+ALTER TABLE "DWH"."DimProduct" ADD COLUMN IF NOT EXISTS "IsActive" boolean;
 
 -- This script creates the table and adds any missing columns but does NOT rename or drop columns.
 -- Columns renamed or removed in the spec must be reconciled with the workspace's reviewed Apply schema changes migration.
 
+CREATE UNIQUE INDEX IF NOT EXISTS "UK_DimProduct_ProductBK" ON "DWH"."DimProduct" ("ProductBK");
+
 INSERT INTO "DWH"."DimProduct" (
-    "ProductKey", "ProductBK", "ProductSKU", "ProductBarcode", "ProductVolume", "ProductWeight", "IsActive"
+    "ProductKey", "ProductBK", "ProductSKU", "ProductSuperBarCode", "ProductVolume", "ProductWeight", "IsActive"
 )
 OVERRIDING SYSTEM VALUE
 VALUES (
@@ -33,7 +39,7 @@ VALUES (
 ON CONFLICT ("ProductKey") DO NOTHING;
 
 INSERT INTO "DWH"."DimProduct" (
-    "ProductBK", "ProductSKU", "ProductBarcode", "ProductVolume", "ProductWeight", "IsActive"
+    "ProductBK", "ProductSKU", "ProductSuperBarCode", "ProductVolume", "ProductWeight", "IsActive"
 )
 SELECT
     s."id"::integer,
@@ -45,7 +51,7 @@ SELECT
 FROM "public"."product_product" AS s
 ON CONFLICT ("ProductBK") DO UPDATE
 SET "ProductSKU" = EXCLUDED."ProductSKU",
-    "ProductBarcode" = EXCLUDED."ProductBarcode",
+    "ProductSuperBarCode" = EXCLUDED."ProductSuperBarCode",
     "ProductVolume" = EXCLUDED."ProductVolume",
     "ProductWeight" = EXCLUDED."ProductWeight",
     "IsActive" = EXCLUDED."IsActive";

@@ -1,9 +1,9 @@
 -- Work Item: ad-hoc
 -- Task: DWH.DimVendor
 -- Spec: DWH.DimVendor
--- Version: 4
--- Generated: 2026-09-01T18:41:31.536808+00:00
--- Notes: Refined DWH.DimVendor to match spec column names and enforced Type 1 upsert logic.
+-- Version: 5
+-- Generated: 2026-09-01T18:41:55.113846+00:00
+-- Notes: Refined DDL to ensure proper column types and idempotent upsert logic.
 
 CREATE SCHEMA IF NOT EXISTS "DWH";
 

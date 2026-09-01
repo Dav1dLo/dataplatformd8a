@@ -18,7 +18,7 @@ PostgreSQL
 | VendorKey | SK | integer | 4 bytes | System-generated surrogate key. | |
 | VendorBK | BK | integer | 4 bytes | Pass-through from public.res_partner.id. | |
 | VendorName | SCD1 | varchar(255) | 255 | Pass-through from public.res_partner.name. | |
-| VendorVAT | SCD1 | varchar(64) | 64 | Pass-through from public.res_partner.vat. | |
+| VendorExpensiveVAT | SCD1 | varchar(64) | 64 | Pass-through from public.res_partner.vat. | |
 | VendorCity | SCD1 | varchar(128) | 128 | Pass-through from public.res_partner.city. | |
 | VendorCountryID | SCD1 | integer | 4 bytes | Pass-through from public.res_partner.country_id. | |
 | IsActive | SCD1 | boolean | 1 byte | Pass-through from public.res_partner.active. | |

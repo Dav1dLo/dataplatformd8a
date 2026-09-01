@@ -18,7 +18,7 @@ PostgreSQL
 | ProductKey | SK | integer | integer | System-generated surrogate key. | |
 | ProductBK | BK | integer | integer | Pass-through from public.product_product.id. | |
 | ProductSKU | SCD1 | varchar(255) | varchar(255) | Pass-through from public.product_product.default_code. | |
-| ProductBarcode | SCD1 | varchar(255) | varchar(255) | Pass-through from public.product_product.barcode. | |
+| ProductSuperBarCode | SCD1 | varchar(255) | varchar(255) | Pass-through from public.product_product.barcode. | |
 | ProductVolume | SCD1 | numeric(38,6) | numeric(38,6) | Pass-through from public.product_product.volume. | |
 | ProductWeight | SCD1 | numeric(38,6) | numeric(38,6) | Pass-through from public.product_product.weight. | |
 | IsActive | SCD1 | boolean | boolean | Pass-through from public.product_product.active. | |
@@ -30,6 +30,6 @@ The table is populated by selecting unique product variants from the source `pub
 - Reads from: [public.product_product](../Staging/public.product_product.md)
 
 ## Notes
-- The `ProductSKU` and `ProductBarcode` are mapped to `varchar(255)` as a safe default for string identifiers where source precision is not explicitly defined.
+- The `ProductSKU` and `ProductSuperBarCode` are mapped to `varchar(255)` as a safe default for string identifiers where source precision is not explicitly defined.
 - `IsActive` should be used to filter for currently active products in standard reporting.
 - Future iterations may include attributes from the `product_template` table to provide a more comprehensive product hierarchy.

@@ -1,20 +1,15 @@
 -- Work Item: ad-hoc
 -- Task: DWH.DimProduct
 -- Spec: DWH.DimProduct.md
--- Version: 2
--- Generated: 2026-09-01T17:48:51.171091+00:00
--- Notes: Renamed ProductBarcode to ProductSuperBarCode per spec and added missing column handling.
+-- Version: 3
+-- Generated: 2026-09-01T18:24:54.428714+00:00
+-- Notes: Refined DDL for idempotent column additions and ensured consistent upsert logic.
 
 CREATE SCHEMA IF NOT EXISTS "DWH";
 
 CREATE TABLE IF NOT EXISTS "DWH"."DimProduct" (
     "ProductKey"    integer GENERATED ALWAYS AS IDENTITY,
     "ProductBK"     integer NOT NULL,
-    "ProductSKU"    varchar(255),
-    "ProductSuperBarCode" varchar(255),
-    "ProductVolume" numeric(38,6),
-    "ProductWeight" numeric(38,6),
-    "IsActive"      boolean,
     CONSTRAINT "PK_DimProduct" PRIMARY KEY ("ProductKey")
 );
 

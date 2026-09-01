@@ -1,9 +1,9 @@
 -- Work Item: ad-hoc
 -- Task: DWH.DimVendor
 -- Spec: DWH.DimVendor
--- Version: 1
--- Generated: 2026-09-01T18:02:31.424578+00:00
--- Notes: Initial generation of DWH.DimVendor using Type 1 upsert pattern.
+-- Version: 2
+-- Generated: 2026-09-01T18:36:48.737493+00:00
+-- Notes: Refined DWH.DimVendor DDL/DML to ensure strict type matching and proper PostgreSQL identifier quoting.
 
 CREATE SCHEMA IF NOT EXISTS "DWH";
 
@@ -40,15 +40,15 @@ ON CONFLICT ("VendorKey") DO NOTHING;
 
 INSERT INTO "DWH"."DimVendor" ("VendorBK", "VendorName", "VendorVAT", "VendorCity", "VendorCountryID", "IsActive", "SupplierRank")
 SELECT 
-    "id"::integer, 
-    "name"::varchar(255), 
-    "vat"::varchar(64), 
-    "city"::varchar(128), 
-    "country_id"::integer, 
-    "active"::boolean, 
-    "supplier_rank"::integer
-FROM "public"."res_partner"
-WHERE "supplier_rank" > 0
+    s."id"::integer,
+    s."name"::varchar(255),
+    s."vat"::varchar(64),
+    s."city"::varchar(128),
+    s."country_id"::integer,
+    s."active"::boolean,
+    s."supplier_rank"::integer
+FROM "public"."res_partner" AS s
+WHERE s."supplier_rank" > 0
 ON CONFLICT ("VendorBK") DO UPDATE SET
     "VendorName" = EXCLUDED."VendorName",
     "VendorVAT" = EXCLUDED."VendorVAT",
